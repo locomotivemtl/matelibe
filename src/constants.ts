@@ -2,6 +2,7 @@ import { App } from '@slack/bolt';
 
 export enum SlashCommands {
     GREET = '/greet',
+    MATELIBE = '/matelibe',
 }
 
 export enum DefaultBotSettings {

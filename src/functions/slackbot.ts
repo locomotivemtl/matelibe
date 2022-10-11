@@ -1,3 +1,6 @@
+////////////////////
+// Imports
+//////////////////// 
 import { App, ExpressReceiver, ReceiverEvent } from '@slack/bolt';
 import { APIGatewayEvent, Context } from 'aws-lambda';
 import * as dotenv from 'dotenv';
@@ -19,6 +22,10 @@ import {
 
 dotenv.config();
 
+
+////////////////////
+// @slack/bolt settings
+//////////////////// 
 const expressReceiver: ExpressReceiver = new ExpressReceiver({
     signingSecret: `${process.env.SLACK_SIGNING_SECRET}`,
     processBeforeResponse: true,
@@ -30,6 +37,9 @@ const app: App = new App({
     receiver: expressReceiver,
 });
 
+////////////////////
+// Messages
+//////////////////// 
 app.message(async ({ message }) => {
     const reactionPacket: ISlackReactionReply = {
         app: app,
@@ -50,7 +60,13 @@ app.message(async ({ message }) => {
     await replyMessage(messagePacket);
 });
 
-app.command(SlashCommands.GREET, async ({ body, ack }) => {
+////////////////////
+// Commands
+//////////////////// 
+app.command(SlashCommands.MATELIBE, async ({ body, ack }) => {
+
+    console.log(body);
+    
     ack();
 
     const messagePacket: ISlackPrivateReply = {
@@ -63,6 +79,9 @@ app.command(SlashCommands.GREET, async ({ body, ack }) => {
     await replyPrivateMessage(messagePacket);
 });
 
+////////////////////
+// Netlify function handler
+//////////////////// 
 export async function handler(
     event: APIGatewayEvent,
     context: Context
