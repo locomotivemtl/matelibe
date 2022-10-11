@@ -1,14 +1,16 @@
 ////////////////////
 // Imports
-//////////////////// 
+////////////////////
 import { App, ExpressReceiver, ReceiverEvent } from '@slack/bolt';
 import { APIGatewayEvent, Context } from 'aws-lambda';
 import * as dotenv from 'dotenv';
+import { boire, notFound } from '../actions';
 import {
     IHandlerResponse,
     ISlackPrivateReply,
     ISlackReactionReply,
     ISlackReply,
+    SlashActions,
     SlashCommands,
 } from '../constants';
 import {
@@ -22,10 +24,9 @@ import {
 
 dotenv.config();
 
-
 ////////////////////
 // @slack/bolt settings
-//////////////////// 
+////////////////////
 const expressReceiver: ExpressReceiver = new ExpressReceiver({
     signingSecret: `${process.env.SLACK_SIGNING_SECRET}`,
     processBeforeResponse: true,
@@ -39,7 +40,7 @@ const app: App = new App({
 
 ////////////////////
 // Messages
-//////////////////// 
+////////////////////
 app.message(async ({ message }) => {
     const reactionPacket: ISlackReactionReply = {
         app: app,
@@ -62,26 +63,23 @@ app.message(async ({ message }) => {
 
 ////////////////////
 // Commands
-//////////////////// 
+////////////////////
 app.command(SlashCommands.MATELIBE, async ({ body, ack }) => {
-
-    console.log(body);
-    
     ack();
 
-    const messagePacket: ISlackPrivateReply = {
-        app: app,
-        botToken: process.env.SLACK_BOT_TOKEN,
-        channelId: body.channel_id,
-        userId: body.user_id,
-        message: 'Greetings, user!',
-    };
-    await replyPrivateMessage(messagePacket);
+    // Select current action
+    const actionStr = body.text.trim().toLowerCase();
+    switch (actionStr) {
+        case SlashActions.BOIRE:
+            return boire(app, body);
+        default:
+            return notFound(app, body);
+    }
 });
 
 ////////////////////
 // Netlify function handler
-//////////////////// 
+////////////////////
 export async function handler(
     event: APIGatewayEvent,
     context: Context
