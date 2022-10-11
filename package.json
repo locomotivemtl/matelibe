@@ -1,0 +1,25 @@
+{
+  "name": "matelibe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arnvvd/matelibe.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/arnvvd/matelibe/issues"
+  },
+  "homepage": "https://github.com/arnvvd/matelibe#readme",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^3.16.0"
+  },
+  "dependencies": {
+    "wrangler": "^2.1.11"
+  }
+}
