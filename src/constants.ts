@@ -1,12 +1,12 @@
-import { App } from "@slack/bolt";
+import { App } from '@slack/bolt';
 
 export enum SlashCommands {
-    GREET = "/greet"
+    GREET = '/greet',
 }
 
 export enum DefaultBotSettings {
-    REACTION = ":robot_face:",
-    MESSAGE = "Hello!"
+    REACTION = ':robot_face:',
+    MESSAGE = 'Hello!',
 }
 
 interface IBaseSlackReply {
@@ -24,7 +24,8 @@ export interface ISlackReply extends IBaseSlackReply {
     message: string;
 }
 
-export interface ISlackPrivateReply extends Omit<ISlackReply, "threadTimestamp"> {
+export interface ISlackPrivateReply
+    extends Omit<ISlackReply, 'threadTimestamp'> {
     userId: string;
 }
 

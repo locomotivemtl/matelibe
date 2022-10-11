@@ -8,28 +8,28 @@ import {
 export function parseRequestBody(
     stringBody: string | null,
     contentType: string | undefined
-) {
+): any | undefined {
     try {
-        let inputStringBody: string = stringBody ?? '';
+        if (!stringBody) {
+            return '';
+        }
+
         let result: any = {};
 
-        if (
-            contentType &&
-            contentType === 'application/x-www-form-urlencoded'
-        ) {
-            var keyValuePairs = inputStringBody.split('&');
-            keyValuePairs.forEach(function (pair: string): void {
-                let individualKeyValuePair: string[] = pair.split('=');
-                result[individualKeyValuePair[0]] = decodeURIComponent(
-                    individualKeyValuePair[1] || ''
-                );
-            });
-            return JSON.parse(JSON.stringify(result));
-        } else {
-            return JSON.parse(inputStringBody);
+        if (contentType && contentType === 'application/json') {
+            return JSON.parse(stringBody);
         }
+
+        let keyValuePairs: string[] = stringBody.split('&');
+        keyValuePairs.forEach(function (pair: string): void {
+            let individualKeyValuePair: string[] = pair.split('=');
+            result[individualKeyValuePair[0]] = decodeURIComponent(
+                individualKeyValuePair[1] || ''
+            );
+        });
+        return JSON.parse(JSON.stringify(result));
     } catch {
-        return undefined;
+        return '';
     }
 }
 
