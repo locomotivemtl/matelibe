@@ -9,7 +9,10 @@
         "name": "Locomotive"
     },
     "devDependencies": {
+        "@slack/bolt": "^3.12.1",
         "@types/aws-lambda": "^8.10.106",
+        "@types/node": "^18.8.4",
+        "dotenv": "^16.0.3",
         "typescript": "^4.8.4"
     }
 }
