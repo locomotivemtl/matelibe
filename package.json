@@ -1,27 +1,15 @@
 {
-  "name": "matelibe",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/arnvvd/matelibe.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/arnvvd/matelibe/issues"
-  },
-  "homepage": "https://github.com/arnvvd/matelibe#readme",
-  "devDependencies": {
-    "@cloudflare/workers-types": "^3.16.0",
-    "@slack/bolt": "^3.12.1",
-    "@types/node": "^18.8.4"
-  },
-  "dependencies": {
-    "wrangler": "^2.1.11"
-  }
+    "name": "matelibe",
+    "description": "Matelibe Slack Bot",
+    "version": "0.0.1",
+    "scripts": {
+        "build": "tsc"
+    },
+    "author": {
+        "name": "Locomotive"
+    },
+    "devDependencies": {
+        "@types/aws-lambda": "^8.10.106",
+        "typescript": "^4.8.4"
+    }
 }
