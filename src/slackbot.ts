@@ -16,14 +16,6 @@ const app = new App({
     receiver: expressReceiver,
 });
 
-function test(stringBody: string | null) {
-    try {
-        return JSON.parse(stringBody ?? '');
-    } catch {
-        return undefined;
-    }
-}
-
 app.command('/greet', async({body, ack}) => {
     ack();
     await app.client.chat.postEphemeral({
@@ -35,8 +27,7 @@ app.command('/greet', async({body, ack}) => {
 });
 
 export async function handler(event: APIGatewayEvent, context: Context) {
-    const payload = parseRequestBody(event.body, event.headers['content-type']);
-    // const payload = test(event.body);
+    const payload = parseRequestBody(event.body, event.headers["content-type"]);
 
     if (payload && payload.type && payload.type === 'url_verification') {
         return {
