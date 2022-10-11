@@ -5,7 +5,6 @@ import * as dotenv from 'dotenv';
 import { parseRequestBody } from '../utils';
 dotenv.config();
 
-
 const expressReceiver = new ExpressReceiver({
     signingSecret: `${process.env.SLACK_SIGNING_SECRET}`,
     processBeforeResponse: true,
@@ -18,12 +17,17 @@ const app = new App({
 });
 
 export async function handler(event: APIGatewayEvent, context: Context) {
-    const payload = parseRequestBody(event.body, event.headers["content-type"]);
+  const payload = parseRequestBody(event.body, event.headers["content-type"]);
 
-    if(payload && payload.type && payload.type === 'url_verification') {
+    if (payload && payload.type && payload.type === 'url_verification') {
         return {
-          statusCode: 200,
-          body: payload.challenge
+            statusCode: 200,
+            body: payload.challenge,
         };
-      }
+    }
+
+    return {
+        statusCode: 200,
+        body: '',
+    };
 }
