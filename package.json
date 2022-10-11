@@ -17,7 +17,9 @@
   },
   "homepage": "https://github.com/arnvvd/matelibe#readme",
   "devDependencies": {
-    "@cloudflare/workers-types": "^3.16.0"
+    "@cloudflare/workers-types": "^3.16.0",
+    "@slack/bolt": "^3.12.1",
+    "@types/node": "^18.8.4"
   },
   "dependencies": {
     "wrangler": "^2.1.11"

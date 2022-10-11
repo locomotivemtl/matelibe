@@ -1,3 +1,5 @@
+import { App, ExpressReceiver } from '@slack/bolt'
+
 export async function onRequest(context) {
   // Contents of context object
   const {
@@ -9,5 +11,10 @@ export async function onRequest(context) {
     data, // arbitrary space for passing data between middlewares
   } = context;
 
-  return new Response("Hello, world!");
+  const expressReceiver = new ExpressReceiver({
+    signingSecret: `${env.SLACK_SIGNING_SECRET}`,
+    processBeforeResponse: true
+  });
+
+  return new Response("Hello World!");
 }
