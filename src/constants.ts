@@ -13,6 +13,11 @@ export enum DefaultBotSettings {
     MESSAGE = 'Hello!',
 }
 
+export enum AirtableBases {
+    RECORDS = 'records',
+    INVENTORY = 'inventory',
+    CHAMPIONS = 'champions',
+}
 interface IBaseSlackReply {
     app: App;
     botToken: string | undefined;

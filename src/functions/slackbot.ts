@@ -3,9 +3,11 @@
 ////////////////////
 import { App, ExpressReceiver, ReceiverEvent } from '@slack/bolt';
 import { APIGatewayEvent, Context } from 'aws-lambda';
+import { log } from 'console';
 import * as dotenv from 'dotenv';
 import { boire, notFound } from '../actions';
 import {
+    AirtableBases,
     IHandlerResponse,
     ISlackPrivateReply,
     ISlackReactionReply,
@@ -15,14 +17,29 @@ import {
 } from '../constants';
 import {
     generateReceiverEvent,
+    getFirstDayOfCurrentMonth,
+    getFirstDayOfMonth,
     isUrlVerificationRequest,
     parseRequestBody,
     replyMessage,
     replyPrivateMessage,
     replyReaction,
 } from '../utils';
+const Airtable = require('airtable');
 
+////////////////////
+// Dot env
+////////////////////
 dotenv.config();
+
+////////////////////
+// Airtable
+////////////////////
+Airtable.configure({
+    endpointUrl: 'https://api.airtable.com',
+    apiKey: `${process.env.AIRTABLE_API_KEY}`,
+});
+const airtableBase = Airtable.base(`${process.env.AIRTABLE_BASE}`);
 
 ////////////////////
 // @slack/bolt settings
@@ -38,28 +55,28 @@ const app: App = new App({
     receiver: expressReceiver,
 });
 
-////////////////////
-// Messages
-////////////////////
-app.message(async ({ message }) => {
-    const reactionPacket: ISlackReactionReply = {
-        app: app,
-        botToken: process.env.SLACK_BOT_TOKEN,
-        channelId: message.channel,
-        threadTimestamp: message.ts,
-        reaction: 'robot_face',
-    };
-    await replyReaction(reactionPacket);
+// ////////////////////
+// // Messages
+// ////////////////////
+// app.message(async ({ message }) => {
+//     const reactionPacket: ISlackReactionReply = {
+//         app: app,
+//         botToken: process.env.SLACK_BOT_TOKEN,
+//         channelId: message.channel,
+//         threadTimestamp: message.ts,
+//         reaction: 'robot_face',
+//     };
+//     await replyReaction(reactionPacket);
 
-    const messagePacket: ISlackReply = {
-        app: app,
-        botToken: process.env.SLACK_BOT_TOKEN,
-        channelId: message.channel,
-        threadTimestamp: message.ts,
-        message: 'Hello :wave:',
-    };
-    await replyMessage(messagePacket);
-});
+//     const messagePacket: ISlackReply = {
+//         app: app,
+//         botToken: process.env.SLACK_BOT_TOKEN,
+//         channelId: message.channel,
+//         threadTimestamp: message.ts,
+//         message: 'Hello :wave:',
+//     };
+//     await replyMessage(messagePacket);
+// });
 
 ////////////////////
 // Commands
@@ -71,7 +88,7 @@ app.command(SlashCommands.MATELIBE, async ({ body, ack }) => {
     const actionStr = body.text.trim().toLowerCase();
     switch (actionStr) {
         case SlashActions.BOIRE:
-            return boire(app, body);
+            return boire(app, body, airtableBase);
         default:
             return notFound(app, body);
     }

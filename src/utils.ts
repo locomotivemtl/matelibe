@@ -94,3 +94,12 @@ export async function replyPrivateMessage(
         console.error(error);
     }
 }
+
+export function getFirstDayOfMonth(year: number, month: number): Date {
+    return new Date(year, month, 1);
+}
+
+export function getFirstDayOfCurrentMonth(): Date {
+    const date = new Date();
+    return getFirstDayOfMonth(date.getFullYear(), date.getMonth());
+}
