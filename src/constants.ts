@@ -1,11 +1,21 @@
 import { App } from '@slack/bolt';
 
+export enum Messages {
+    USER_SUSPENDED = 'Oups! Il semblerait que vous n\'êtes pas autorisé.e à boire ce Mate Libre. Veuillez le remettre là où vous l\'avez trouvé. Vous pouvez contacter l\'ABML au besoin.',
+    ACTION_BOIRE = '<@$user_id> boit un Mate Libre! Il n\'en reste plus que $inventory_count.',
+    ACTION_REMETTRE = '<@$user_id> a finalement cédé et a remis son Maté Libre dans le frigo. Il n\'en reste plus que $inventory_count.',
+    NOT_FOUND = 'Cette commande n\'existe pas. Vous pouvez contacter l\'ABML au besoin.',
+    USER_LIMIT= '⚠️ Attention! <@$user_id> a dépassé la limite journalière permise de Mate Libre. Rappelons-lui que c’est *mal vu* en lui jetant un regard. L\’événement est noté dans notre système et sera examiné.'
+}
+
 export enum SlashCommands {
     MATELIBE = '/matelibe',
 }
 
 export enum SlashActions {
-    BOIRE = 'boire'
+    BOIRE = 'boire',
+    REMETTRE = 'remettre',
+    BUVEURS = 'buveurs'
 }
 
 export enum DefaultBotSettings {
@@ -14,9 +24,8 @@ export enum DefaultBotSettings {
 }
 
 export enum AirtableBases {
-    RECORDS = 'records',
+    USERS = 'users',
     INVENTORY = 'inventory',
-    CHAMPIONS = 'champions',
 }
 interface IBaseSlackReply {
     app: App;

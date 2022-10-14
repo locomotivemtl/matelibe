@@ -1,10 +1,15 @@
 import { App, SlashCommand } from '@slack/bolt';
-import { AirtableBases, ISlackPrivateReply, ISlackReply } from './constants';
 import {
-    getFirstDayOfCurrentMonth,
-    replyMessage,
-    replyPrivateMessage,
-} from './utils';
+    createUser,
+    decrementInventoryQuantity,
+    findUser,
+    findUsers,
+    getInventoryQuantity,
+    incrementInventoryQuantity,
+    updateUserCount,
+} from './api';
+import { ISlackPrivateReply, Messages } from './constants';
+import { replyMessage, replyPrivateMessage } from './utils';
 
 export async function notFound(app: App, body: SlashCommand) {
     const messagePacket: ISlackPrivateReply = {
@@ -12,79 +17,165 @@ export async function notFound(app: App, body: SlashCommand) {
         botToken: process.env.SLACK_BOT_TOKEN,
         channelId: body.channel_id,
         userId: body.user_id,
-        message: 'Action not found!',
+        message: Messages.NOT_FOUND,
     };
     await replyPrivateMessage(messagePacket);
 }
 
-export async function boire(app: App, body: SlashCommand, airtableBase: any) {
-    const currentDate = getFirstDayOfCurrentMonth().toISOString().split('T')[0];
-
-    let idToUpdate = null;
+export async function boire(app: App, body: SlashCommand) {
+    const currentDate = new Date(Date.now()).toISOString().split('T')[0];
+    let recordIdToUpdate: any = null;
+    let inventoryIdToUpdate: any = null;
+    let inventoryQuantity = 0;
     let count = 0;
+    let suspended = false;
+    let lastModifiedDate = null;
 
-    console.log(currentDate);
+    await findUser(body, (record: any) => {
+        recordIdToUpdate = record.getId();
+        count = record.get('count');
+        suspended = record.get('suspended');
+        lastModifiedDate = record.get('last_modified_date');
+    });
 
-    await airtableBase(AirtableBases.RECORDS)
-        .select({
-            maxRecords: 3,
-            view: 'default',
-            filterByFormula: `AND(IS_SAME(month, '2022-10-01', 'month'), REGEX_MATCH(user_id, 'U045T69R6Q6'))   `,
-        })
-        .firstPage(function (err: any, records: any) {
-            console.log('-------------');
-            console.log(records, body.user_id.toUpperCase());
+    await getInventoryQuantity((record: any) => {
+        inventoryIdToUpdate = record.getId();
+        inventoryQuantity = record.get('quantity');
+    });
 
-            if (err) {
-                console.error(err);
-                return;
-            }
-            records.forEach((record: any) => {
-                console.log('Retrieved', record.getId(), record.get('count'));
-                console.log('-------------');
-            });
+    if (suspended) {
+        return replyPrivateMessage({
+            app: app,
+            botToken: process.env.SLACK_BOT_TOKEN,
+            channelId: body.channel_id,
+            userId: body.user_id,
+            message: Messages.USER_SUSPENDED.replace(
+                '$user_id',
+                `${body.user_id}`
+            ),
         });
+    }
 
-    // if (idToUpdate === null) {
-    //     await airtableBase(AirtableBases.RECORDS).create(
-    //         {
-    //             month: currentDate,
-    //             user_id: body.user_id,
-    //             count: 1,
-    //         },
-    //         function (err: any, record: any) {
-    //             if (err) {
-    //                 console.error(err);
-    //                 return;
-    //             }
-    //             console.log('create', record.getId());
-    //         }
-    //     );
-    // } else {
-    //     await airtableBase(AirtableBases.RECORDS).update(
-    //         idToUpdate,
-    //         {
-    //             count: count++,
-    //         },
-    //         function (err: any, record: any) {
-    //             if (err) {
-    //                 console.error(err);
-    //                 return;
-    //             }
-    //             console.log(record.get('user_id'));
-    //         }
-    //     );
-    // }
+    if (lastModifiedDate === currentDate) {
+        replyMessage({
+            app: app,
+            botToken: process.env.SLACK_BOT_TOKEN,
+            channelId: body.channel_id,
+            threadTimestamp: body.ts,
+            message: Messages.USER_LIMIT.replace('$user_id', `${body.user_id}`),
+        });
+    }
 
-    const messagePacket: ISlackReply = {
-        app: app,
-        botToken: process.env.SLACK_BOT_TOKEN,
-        channelId: body.channel_id,
-        threadTimestamp: body.ts,
-        message: 'Bravo buveur!',
-    };
-    await replyMessage(messagePacket);
+    if (recordIdToUpdate === null) {
+        await createUser(body, async (record: any) => {
+            console.log('----- CREATED ------');
+            console.log(record);
+
+            await decrementInventoryQuantity(
+                inventoryIdToUpdate,
+                inventoryQuantity,
+                (record: any) => {
+                    const inventoryCount = record.get('quantity');
+                    return replyMessage({
+                        app: app,
+                        botToken: process.env.SLACK_BOT_TOKEN,
+                        channelId: body.channel_id,
+                        threadTimestamp: body.ts,
+                        message: Messages.ACTION_BOIRE.replace(
+                            '$user_id',
+                            `${body.user_id}`
+                        ).replace('$inventory_count', inventoryCount),
+                    });
+                }
+            );
+        });
+    } else {
+        await updateUserCount(
+            body,
+            recordIdToUpdate,
+            count,
+            async (record: any) => {
+                await decrementInventoryQuantity(
+                    inventoryIdToUpdate,
+                    inventoryQuantity,
+                    (record: any) => {
+                        const inventoryCount = record.get('quantity');
+                        return replyMessage({
+                            app: app,
+                            botToken: process.env.SLACK_BOT_TOKEN,
+                            channelId: body.channel_id,
+                            threadTimestamp: body.ts,
+                            message: Messages.ACTION_BOIRE.replace(
+                                '$user_id',
+                                `${body.user_id}`
+                            ).replace('$inventory_count', inventoryCount),
+                        });
+                    }
+                );
+            }
+        );
+    }
 }
 
-// filterByFormula: `AND(IS_SAME(month, '${currentDate}', 'month'), REGEX_MATCH(user_id, '${body.user_id}'))`,
-// filterByFormula: `AND(IS_SAME(month, '${currentDate}', 'month'), REGEX_MATCH(user_id, ${body.user_id}))`,
+export async function remettre(app: App, body: SlashCommand) {
+    let recordIdToUpdate: any = null;
+    let inventoryIdToUpdate: any = null;
+    let inventoryQuantity = 0;
+    let suspended = false;
+
+    await findUser(body, (record: any) => {
+        recordIdToUpdate = record.getId();
+        suspended = record.get('suspended');
+    });
+
+    await getInventoryQuantity((record: any) => {
+        inventoryIdToUpdate = record.getId();
+        inventoryQuantity = record.get('quantity');
+    });
+
+    if (suspended) {
+        return replyPrivateMessage({
+            app: app,
+            botToken: process.env.SLACK_BOT_TOKEN,
+            channelId: body.channel_id,
+            userId: body.user_id,
+            message: Messages.USER_SUSPENDED.replace(
+                '$user_id',
+                `${body.user_id}`
+            ),
+        });
+    }
+
+    await incrementInventoryQuantity(
+        inventoryIdToUpdate,
+        inventoryQuantity,
+        (record: any) => {
+            const inventoryCount = record.get('quantity');
+            return replyMessage({
+                app: app,
+                botToken: process.env.SLACK_BOT_TOKEN,
+                channelId: body.channel_id,
+                threadTimestamp: body.ts,
+                message: Messages.ACTION_REMETTRE.replace(
+                    '$user_id',
+                    `${body.user_id}`
+                ).replace('$inventory_count', inventoryCount),
+            });
+        }
+    );
+}
+
+export async function buveurs(app: App, body: SlashCommand) {
+    const userRecords: any[] = []
+    await findUsers(body, (record: any) => {
+        userRecords.push({
+            userId: record.get('user_id'),
+            username: record.get('username'),
+            count: record.get('count')
+        })
+    });
+
+    userRecords.sort((a,b) => b.count - a.count);
+
+    console.log(userRecords)
+}
