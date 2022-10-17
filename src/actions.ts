@@ -1,4 +1,5 @@
 import { App, SlashCommand } from '@slack/bolt';
+import { count } from 'console';
 import {
     createUser,
     decrementInventoryQuantity,
@@ -8,7 +9,7 @@ import {
     incrementInventoryQuantity,
     updateUserCount,
 } from './api';
-import { ISlackPrivateReply, Messages } from './constants';
+import { ISlackPrivateReply, MATELIBRE_ML, Messages } from './constants';
 import { replyMessage, replyPrivateMessage } from './utils';
 
 export async function notFound(app: App, body: SlashCommand) {
@@ -166,16 +167,29 @@ export async function remettre(app: App, body: SlashCommand) {
 }
 
 export async function buveurs(app: App, body: SlashCommand) {
-    const userRecords: any[] = []
+    const userRecords: any[] = [];
     await findUsers(body, (record: any) => {
         userRecords.push({
             userId: record.get('user_id'),
             username: record.get('username'),
-            count: record.get('count')
-        })
+            count: record.get('count'),
+        });
     });
 
-    userRecords.sort((a,b) => b.count - a.count);
+    userRecords.sort((a, b) => b.count - a.count);
 
-    console.log(userRecords)
+    let message = `${Messages.RANK}`;
+    userRecords.map((userRecord, index) => {
+        message += `${index + 1}. <@${userRecord.userId}> avec ${
+            userRecord.count
+        } canette.s soit ${(userRecord.count * MATELIBRE_ML) / 1000}L.\n`;
+    });
+
+    return replyPrivateMessage({
+        app: app,
+        botToken: process.env.SLACK_BOT_TOKEN,
+        channelId: body.channel_id,
+        userId: body.user_id,
+        message,
+    });
 }
