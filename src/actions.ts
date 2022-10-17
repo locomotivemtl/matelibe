@@ -182,7 +182,9 @@ export async function buveurs(app: App, body: SlashCommand) {
     userRecords.map((userRecord, index) => {
         message += `${index + 1}. <@${userRecord.userId}> avec ${
             userRecord.count
-        } canette.s soit ${(userRecord.count * MATELIBRE_ML) / 1000}L.\n`;
+        } ${userRecord.count > 1 ? 'canettes' : 'canette'} soit ${
+            (userRecord.count * MATELIBRE_ML) / 1000
+        }L.\n`;
     });
 
     return replyPrivateMessage({
