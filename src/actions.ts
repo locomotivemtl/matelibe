@@ -1,5 +1,4 @@
 import { App, SlashCommand } from '@slack/bolt';
-import { count } from 'console';
 import {
     createUser,
     decrementInventoryQuantity,
@@ -9,18 +8,11 @@ import {
     incrementInventoryQuantity,
     updateUserCount,
 } from './api';
-import { ISlackPrivateReply, MATELIBRE_ML, Messages } from './constants';
+import { ISlackPrivateReply, MATELIBRE_ML, Messages, SlashCommands } from './constants';
 import { replyMessage, replyPrivateMessage } from './utils';
 
 export async function notFound(app: App, body: SlashCommand) {
-    const messagePacket: ISlackPrivateReply = {
-        app: app,
-        botToken: process.env.SLACK_BOT_TOKEN,
-        channelId: body.channel_id,
-        userId: body.user_id,
-        message: Messages.NOT_FOUND,
-    };
-    await replyPrivateMessage(messagePacket);
+    help(app, body);
 }
 
 export async function boire(app: App, body: SlashCommand) {
@@ -185,6 +177,37 @@ export async function buveurs(app: App, body: SlashCommand) {
         } ${userRecord.count > 1 ? 'canettes' : 'canette'} soit ${
             (userRecord.count * MATELIBRE_ML) / 1000
         }L.\n`;
+    });
+
+    return replyPrivateMessage({
+        app: app,
+        botToken: process.env.SLACK_BOT_TOKEN,
+        channelId: body.channel_id,
+        userId: body.user_id,
+        message,
+    });
+}
+
+export async function help(app: App, body: SlashCommand) {
+    let message = `${Messages.HELP}`;
+
+    const commandHints = [
+        {
+            value: '`/matelibe boire`',
+            hint: 'Boire un Mate Libre\n'
+        },
+        {
+            value: '`/matelibe remettre`',
+            hint: 'Remettre son Mate Libre non bu dans le frigo\n'
+        },
+        {
+            value: '`/matelibe buveurs`',
+            hint: 'Lister les plus grands buveurs de Mate Libre\n'
+        }
+    ]
+    
+    commandHints.forEach((command) => {
+        message += `${command.value} - ${command.hint}.`;
     });
 
     return replyPrivateMessage({
