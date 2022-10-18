@@ -100,6 +100,32 @@ export async function updateUserCount(
     });
 }
 
+export async function updateUserCountDecrement(
+    body: SlashCommand,
+    recordIdToUpdate: string,
+    count: number,
+    recordCallback: (record: any) => void
+): Promise<boolean> {
+    return new Promise((resolve) => {
+        airtableBase(AirtableBases.USERS).update(
+            recordIdToUpdate,
+            {
+                count: count - 1,
+                username: body.user_name,
+            },
+            (err: any, record: any) => {
+                if (err) {
+                    console.error(err);
+                    resolve(false);
+                    return;
+                }
+                recordCallback?.(record);
+                resolve(true);
+            }
+        );
+    });
+}
+
 export async function getInventoryQuantity(
     recordCallback: (record: any) => void
 ): Promise<boolean> {

@@ -7,8 +7,14 @@ import {
     getInventoryQuantity,
     incrementInventoryQuantity,
     updateUserCount,
+    updateUserCountDecrement,
 } from './api';
-import { ISlackPrivateReply, MATELIBRE_ML, Messages, SlashCommands } from './constants';
+import {
+    ISlackPrivateReply,
+    MATELIBRE_ML,
+    Messages,
+    SlashCommands,
+} from './constants';
 import { replyMessage, replyPrivateMessage } from './utils';
 
 export async function notFound(app: App, body: SlashCommand) {
@@ -122,10 +128,12 @@ export async function remettre(app: App, body: SlashCommand) {
     let inventoryIdToUpdate: any = null;
     let inventoryQuantity = 0;
     let suspended = false;
+    let count = 0;
 
     await findUser(body, (record: any) => {
         recordIdToUpdate = record.getId();
         suspended = record.get('suspended');
+        count = record.get('count');
     });
 
     await getInventoryQuantity((record: any) => {
@@ -145,6 +153,8 @@ export async function remettre(app: App, body: SlashCommand) {
             ),
         });
     }
+
+    await updateUserCountDecrement(body, recordIdToUpdate, count, () => {});
 
     await incrementInventoryQuantity(
         inventoryIdToUpdate,
@@ -201,18 +211,18 @@ export function help(app: App, body: SlashCommand) {
     const commandHints = [
         {
             value: '`/matelibe boire`',
-            hint: 'Boire un Mate Libre'
+            hint: 'Boire un Mate Libre',
         },
         {
             value: '`/matelibe remettre`',
-            hint: 'Remettre son Mate Libre non bu dans le frigo'
+            hint: 'Remettre son Mate Libre non bu dans le frigo',
         },
         {
             value: '`/matelibe buveurs`',
-            hint: 'Lister les plus grands buveurs de Mate Libre'
-        }
-    ]
-    
+            hint: 'Lister les plus grands buveurs de Mate Libre',
+        },
+    ];
+
     commandHints.forEach((command) => {
         message += `${command.value} - ${command.hint}.\n`;
     });
