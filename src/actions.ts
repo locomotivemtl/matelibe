@@ -18,14 +18,7 @@ import {
 import { replyMessage, replyPrivateMessage } from './utils';
 
 export async function notFound(app: App, body: SlashCommand) {
-    const messagePacket: ISlackPrivateReply = {
-        app: app,
-        botToken: process.env.SLACK_BOT_TOKEN,
-        channelId: body.channel_id,
-        userId: body.user_id,
-        message: Messages.NOT_FOUND,
-    };
-    await replyPrivateMessage(messagePacket);
+    help(app, body);
 }
 
 export async function boire(app: App, body: SlashCommand) {
