@@ -12,7 +12,14 @@ import { ISlackPrivateReply, MATELIBRE_ML, Messages, SlashCommands } from './con
 import { replyMessage, replyPrivateMessage } from './utils';
 
 export async function notFound(app: App, body: SlashCommand) {
-    help(app, body);
+    const messagePacket: ISlackPrivateReply = {
+        app: app,
+        botToken: process.env.SLACK_BOT_TOKEN,
+        channelId: body.channel_id,
+        userId: body.user_id,
+        message: Messages.NOT_FOUND,
+    };
+    await replyPrivateMessage(messagePacket);
 }
 
 export async function boire(app: App, body: SlashCommand) {
@@ -188,7 +195,7 @@ export async function buveurs(app: App, body: SlashCommand) {
     });
 }
 
-export async function help(app: App, body: SlashCommand) {
+export function help(app: App, body: SlashCommand) {
     let message = `${Messages.HELP}`;
 
     const commandHints = [
