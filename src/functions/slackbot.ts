@@ -45,7 +45,7 @@ const app: App = new App({
 // Commands
 ////////////////////
 app.command(SlashCommands.MATELIBE, async ({ body, ack }) => {
-    ack();
+    await ack();
 
     // Select current action
     const actionStr = body.text.trim().toLowerCase();
