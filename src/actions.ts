@@ -194,20 +194,20 @@ export async function help(app: App, body: SlashCommand) {
     const commandHints = [
         {
             value: '`/matelibe boire`',
-            hint: 'Boire un Mate Libre\n'
+            hint: 'Boire un Mate Libre'
         },
         {
             value: '`/matelibe remettre`',
-            hint: 'Remettre son Mate Libre non bu dans le frigo\n'
+            hint: 'Remettre son Mate Libre non bu dans le frigo'
         },
         {
             value: '`/matelibe buveurs`',
-            hint: 'Lister les plus grands buveurs de Mate Libre\n'
+            hint: 'Lister les plus grands buveurs de Mate Libre'
         }
     ]
     
     commandHints.forEach((command) => {
-        message += `${command.value} - ${command.hint}.`;
+        message += `${command.value} - ${command.hint}.\n`;
     });
 
     return replyPrivateMessage({
